@@ -13,3 +13,6 @@ Primeira versão do app/site estilo TikTok para personagens de IMVU.
 - Curtidas
 - Comentários mockados
 - Perfil básico
+
+## Como usar
+Abra o arquivo index.html no Replit ou em qualquer hospedagem estática.

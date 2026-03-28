@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VUCLIP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Comunidade IMVU</p>
+        <h1>VUCLIP</h1>
+      </div>
+      <button class="ghost-btn" id="openPostModal">Postar</button>
+    </header>
+
+    <section class="stories">
+      <div class="story active">Para você</div>
+      <div class="story">Seguindo</div>
+      <div class="story">Em alta</div>
+      <div class="story">Duplas</div>
+    </section>
+
+    <main id="feed" class="feed"></main>
+
+    <nav class="bottom-nav">
+      <button class="nav-item active">Início</button>
+      <button class="nav-item">Explorar</button>
+      <button class="nav-item post-highlight" id="openPostModalBottom">+</button>
+      <button class="nav-item">Inbox</button>
+      <button class="nav-item">Perfil</button>
+    </nav>
+  </div>
+
+  <div class="modal-backdrop hidden" id="postModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Novo post</h2>
+        <button class="close-btn" id="closePostModal">×</button>
+      </div>
+      <form id="postForm" class="post-form">
+        <label>
+          Nome do perfil
+          <input type="text" id="username" placeholder="Ex: wallisson.ghost" required />
+        </label>
+        <label>
+          Título do post
+          <input type="text" id="title" placeholder="Mostrando meu personagem no IMVU" required />
+        </label>
+        <label>
+          Legenda
+          <textarea id="caption" rows="4" placeholder="Escreva algo..." required></textarea>
+        </label>
+        <label>
+          Tipo de mídia
+          <select id="mediaType">
+            <option value="image">Foto</option>
+            <option value="video">Vídeo</option>
+          </select>
+        </label>
+        <label>
+          URL da mídia
+          <input type="url" id="mediaUrl" placeholder="https://..." required />
+        </label>
+        <button type="submit" class="primary-btn">Publicar agora</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
