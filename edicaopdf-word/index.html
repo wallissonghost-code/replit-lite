@@ -13,11 +13,11 @@
   </style>
 </head>
 <body>
-<div class="loading"><div><strong>Carregando EdiçãoPDF...</strong><span>Preparando PDF, Chapa Mista e Word → PDF com todas as páginas.</span></div></div>
+<div class="loading"><div><strong>Carregando EdiçãoPDF...</strong><span>Preparando PDF, Chapa Mista, Word → PDF e mesclagem monocromática.</span></div></div>
 <script>
 (async()=>{
   const root='https://raw.githubusercontent.com/wallissonghost-code/replit-lite/main/edicaopdf-bridge/';
-  const version='word-pdf-all-pages-20260915-3';
+  const version='merge-monochrome-20260915-1';
   const readParts=async(prefix,count,expected)=>{
     const parts=await Promise.all(Array.from({length:count},(_,i)=>fetch(`${root}${prefix}${i}.txt?v=${version}`,{cache:'no-store'}).then(async r=>{
       if(!r.ok) throw new Error(`${prefix}${i}: HTTP ${r.status}`);
@@ -38,21 +38,24 @@
     if(!r.ok) throw new Error(`${path}: HTTP ${r.status}`);
     return r.text();
   });
-  const [app,mixed,word,wordPagesFix]=await Promise.all([
+  const [app,mixed,word,wordPagesFix,mergeMono]=await Promise.all([
     readParts('q',8,63192),
     readParts('mix',4,18384),
     readSingle('word-tools.b64.txt',8952),
-    readText('word-all-pages-fix.js')
+    readText('word-all-pages-fix.js'),
+    readText('merge-monochrome.js')
   ]);
   for(const required of ['Chapa 51 × 38,8','Pé com pé','Cabeça com cabeça','.cdr']) if(!app.includes(required)) throw new Error(`Base sem função: ${required}`);
   for(const required of ['Chapa mista inteligente','mixedGenerate','mixedJobList']) if(!mixed.includes(required)) throw new Error(`Chapa mista sem função: ${required}`);
   for(const required of ['Word → PDF','wordRun','docx-preview','Ordenar A–Z']) if(!word.includes(required)) throw new Error(`Word sem função: ${required}`);
   if(!wordPagesFix.includes('ignoreLastRenderedPageBreak: false')) throw new Error('Correção de múltiplas páginas do Word ausente.');
+  for(const required of ['mergeColorMode','Preto e branco — preto puro','Tons de cinza — sem cores','mergeMonochrome']) if(!mergeMono.includes(required)) throw new Error(`Mesclagem monocromática sem função: ${required}`);
   let html=app.replace("fetch('/api'","fetch('https://edicaopdf-api.vercel.app/'");
   const safeMixed=mixed.replace(/<\/script/gi,'<\\/script');
+  const safeMergeMono=mergeMono.replace(/<\/script/gi,'<\\/script');
   const safeWordFix=wordPagesFix.replace(/<\/script/gi,'<\\/script');
   const safeWord=word.replace(/<\/script/gi,'<\\/script');
-  html=html.replace('</body>',`<script>${safeMixed}<\/script><script>${safeWordFix}<\/script><script>${safeWord}<\/script></body>`);
+  html=html.replace('</body>',`<script>${safeMixed}<\/script><script>${safeMergeMono}<\/script><script>${safeWordFix}<\/script><script>${safeWord}<\/script></body>`);
   document.open();document.write(html);document.close();
 })().catch(error=>{
   console.error(error);
