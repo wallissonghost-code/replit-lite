@@ -13,11 +13,11 @@
   </style>
 </head>
 <body>
-<div class="loading"><div><strong>Carregando EdiçãoPDF...</strong><span>Preparando PDF, Chapa Mista e Word → PDF.</span></div></div>
+<div class="loading"><div><strong>Carregando EdiçãoPDF...</strong><span>Preparando PDF, Chapa Mista e Word → PDF com todas as páginas.</span></div></div>
 <script>
 (async()=>{
   const root='https://raw.githubusercontent.com/wallissonghost-code/replit-lite/main/edicaopdf-bridge/';
-  const version='word-pdf-20260915-2';
+  const version='word-pdf-all-pages-20260915-3';
   const readParts=async(prefix,count,expected)=>{
     const parts=await Promise.all(Array.from({length:count},(_,i)=>fetch(`${root}${prefix}${i}.txt?v=${version}`,{cache:'no-store'}).then(async r=>{
       if(!r.ok) throw new Error(`${prefix}${i}: HTTP ${r.status}`);
@@ -34,18 +34,25 @@
     const bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));
     return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
   };
-  const [app,mixed,word]=await Promise.all([
+  const readText=async(path)=>fetch(`${root}${path}?v=${version}`,{cache:'no-store'}).then(async r=>{
+    if(!r.ok) throw new Error(`${path}: HTTP ${r.status}`);
+    return r.text();
+  });
+  const [app,mixed,word,wordPagesFix]=await Promise.all([
     readParts('q',8,63192),
     readParts('mix',4,18384),
-    readSingle('word-tools.b64.txt',8952)
+    readSingle('word-tools.b64.txt',8952),
+    readText('word-all-pages-fix.js')
   ]);
   for(const required of ['Chapa 51 × 38,8','Pé com pé','Cabeça com cabeça','.cdr']) if(!app.includes(required)) throw new Error(`Base sem função: ${required}`);
   for(const required of ['Chapa mista inteligente','mixedGenerate','mixedJobList']) if(!mixed.includes(required)) throw new Error(`Chapa mista sem função: ${required}`);
   for(const required of ['Word → PDF','wordRun','docx-preview','Ordenar A–Z']) if(!word.includes(required)) throw new Error(`Word sem função: ${required}`);
+  if(!wordPagesFix.includes('ignoreLastRenderedPageBreak: false')) throw new Error('Correção de múltiplas páginas do Word ausente.');
   let html=app.replace("fetch('/api'","fetch('https://edicaopdf-api.vercel.app/'");
   const safeMixed=mixed.replace(/<\/script/gi,'<\\/script');
+  const safeWordFix=wordPagesFix.replace(/<\/script/gi,'<\\/script');
   const safeWord=word.replace(/<\/script/gi,'<\\/script');
-  html=html.replace('</body>',`<script>${safeMixed}<\/script><script>${safeWord}<\/script></body>`);
+  html=html.replace('</body>',`<script>${safeMixed}<\/script><script>${safeWordFix}<\/script><script>${safeWord}<\/script></body>`);
   document.open();document.write(html);document.close();
 })().catch(error=>{
   console.error(error);
