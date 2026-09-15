@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#080a0f">
+  <title>EdiçãoPDF — Word + PDF</title>
+  <style>
+    html,body{margin:0;min-height:100%;background:#080a0f;color:#fff;font-family:Arial,sans-serif}
+    .loading{min-height:100vh;display:grid;place-items:center;text-align:center;padding:24px;box-sizing:border-box}
+    .loading strong{font-size:22px}.loading span{display:block;margin-top:10px;color:#9ca3af;line-height:1.5}.error{max-width:620px}
+    button{padding:12px 18px;border:0;border-radius:8px;cursor:pointer}
+  </style>
+</head>
+<body>
+<div class="loading"><div><strong>Carregando EdiçãoPDF...</strong><span>Preparando PDF, Chapa Mista e Word → PDF.</span></div></div>
+<script>
+(async()=>{
+  const root='https://raw.githubusercontent.com/wallissonghost-code/replit-lite/main/edicaopdf-bridge/';
+  const version='word-pdf-20260915-1';
+  const readParts=async(prefix,count,expected)=>{
+    const parts=await Promise.all(Array.from({length:count},(_,i)=>fetch(`${root}${prefix}${i}.txt?v=${version}`,{cache:'no-store'}).then(async r=>{
+      if(!r.ok) throw new Error(`${prefix}${i}: HTTP ${r.status}`);
+      return (await r.text()).trim();
+    })));
+    const encoded=parts.join('').replace(/\s+/g,'');
+    if(encoded.length!==expected||encoded.length%4!==0||!/^[A-Za-z0-9+/]*={0,2}$/.test(encoded)) throw new Error(`Pacote ${prefix} inválido (${encoded.length} caracteres)`);
+    const bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));
+    return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+  };
+  const readSingle=async(path,expected)=>{
+    const encoded=(await fetch(`${root}${path}?v=${version}`,{cache:'no-store'}).then(async r=>{if(!r.ok) throw new Error(`${path}: HTTP ${r.status}`);return r.text()})).trim().replace(/\s+/g,'');
+    if(encoded.length!==expected||encoded.length%4!==0||!/^[A-Za-z0-9+/]*={0,2}$/.test(encoded)) throw new Error(`Pacote ${path} inválido (${encoded.length} caracteres)`);
+    const bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));
+    return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+  };
+  const [app,mixed,word]=await Promise.all([
+    readParts('q',8,63192),
+    readParts('mix',4,18384),
+    readSingle('word-tools.b64.txt',8952)
+  ]);
+  for(const required of ['Chapa 51 × 38,8','Pé com pé','Cabeça com cabeça','.cdr']) if(!app.includes(required)) throw new Error(`Base sem função: ${required}`);
+  for(const required of ['Chapa mista inteligente','mixedGenerate','mixedJobs']) if(!mixed.includes(required)) throw new Error(`Chapa mista sem função: ${required}`);
+  for(const required of ['Word → PDF','wordRun','docx-preview','Ordenar A–Z']) if(!word.includes(required)) throw new Error(`Word sem função: ${required}`);
+  let html=app.replace("fetch('/api'","fetch('https://edicaopdf-api.vercel.app/'");
+  const safeMixed=mixed.replace(/<\/script/gi,'<\\/script');
+  const safeWord=word.replace(/<\/script/gi,'<\\/script');
+  html=html.replace('</body>',`<script>${safeMixed}<\/script><script>${safeWord}<\/script></body>`);
+  document.open();document.write(html);document.close();
+})().catch(error=>{
+  console.error(error);
+  document.body.innerHTML=`<div class="loading"><div class="error"><strong>Não foi possível carregar o EdiçãoPDF</strong><span>${String(error.message||error)}</span><br><button onclick="location.reload()">Tentar novamente</button></div></div>`;
+});
+</script>
+</body>
+</html>
